@@ -1,13 +1,8 @@
 import { Card } from '@/components/ui/card';
-import { PomodoroSession } from '@/hooks/usePomodoro';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-interface ActivityHeatmapProps {
-  sessions: PomodoroSession[];
-}
-
-export default function ActivityHeatmap({ sessions = [] }: ActivityHeatmapProps) {
-  const getDateKey = (date: Date) => {
+export default function ActivityHeatmap({ sessions = [] }) {
+  const getDateKey = (date) => {
     return date.toISOString().split('T')[0];
   };
 
@@ -22,7 +17,7 @@ export default function ActivityHeatmap({ sessions = [] }: ActivityHeatmapProps)
     return days;
   };
 
-  const getSessionsForDate = (date: Date) => {
+  const getSessionsForDate = (date) => {
     const dateKey = getDateKey(date);
     return sessions.filter(session => {
       const sessionDate = new Date(session.date);
@@ -30,12 +25,12 @@ export default function ActivityHeatmap({ sessions = [] }: ActivityHeatmapProps)
     });
   };
 
-  const getTotalMinutes = (date: Date) => {
+  const getTotalMinutes = (date) => {
     const daySessions = getSessionsForDate(date);
     return daySessions.reduce((total, session) => total + session.duration, 0);
   };
 
-  const getIntensityClass = (minutes: number) => {
+  const getIntensityClass = (minutes) => {
     if (minutes === 0) return 'bg-muted/30';
     if (minutes < 30) return 'bg-green-200 dark:bg-green-900/40';
     if (minutes < 60) return 'bg-green-300 dark:bg-green-800/60';

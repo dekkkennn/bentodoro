@@ -1,22 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-export type TimerMode = 'work' | 'break' | 'longBreak';
-export type TimerStatus = 'idle' | 'running' | 'paused';
-
-export interface PomodoroSettings {
-  workDuration: number;
-  breakDuration: number;
-  longBreakDuration: number;
-  sessionsUntilLongBreak: number;
-}
-
-export interface PomodoroSession {
-  date: string;
-  duration: number;
-  type: TimerMode;
-}
-
-const DEFAULT_SETTINGS: PomodoroSettings = {
+const DEFAULT_SETTINGS = {
   workDuration: 25,
   breakDuration: 5,
   longBreakDuration: 15,
@@ -24,22 +8,22 @@ const DEFAULT_SETTINGS: PomodoroSettings = {
 };
 
 export const usePomodoro = () => {
-  const [settings, setSettings] = useState<PomodoroSettings>(() => {
+  const [settings, setSettings] = useState(() => {
     const saved = localStorage.getItem('pomodoroSettings');
     return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
   });
 
-  const [mode, setMode] = useState<TimerMode>('work');
-  const [status, setStatus] = useState<TimerStatus>('idle');
+  const [mode, setMode] = useState('work');
+  const [status, setStatus] = useState('idle');
   const [timeLeft, setTimeLeft] = useState(settings.workDuration * 60);
   const [completedSessions, setCompletedSessions] = useState(0);
-  const [sessions, setSessions] = useState<PomodoroSession[]>(() => {
+  const [sessions, setSessions] = useState(() => {
     const saved = localStorage.getItem('pomodoroSessions');
     return saved ? JSON.parse(saved) : [];
   });
 
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const startTimeRef = useRef<number | null>(null);
+  const intervalRef = useRef(null);
+  const startTimeRef = useRef(null);
 
   useEffect(() => {
     localStorage.setItem('pomodoroSettings', JSON.stringify(settings));
@@ -49,7 +33,7 @@ export const usePomodoro = () => {
     localStorage.setItem('pomodoroSessions', JSON.stringify(sessions));
   }, [sessions]);
 
-  const getDuration = useCallback((timerMode: TimerMode) => {
+  const getDuration = useCallback((timerMode) => {
     switch (timerMode) {
       case 'work':
         return settings.workDuration * 60;
@@ -57,8 +41,10 @@ export const usePomodoro = () => {
         return settings.breakDuration * 60;
       case 'longBreak':
         return settings.longBreakDuration * 60;
+      default:
+        return settings.workDuration * 60;
     }
-  }, [settings]);
+  }, [settings.workDuration, settings.breakDuration, settings.longBreakDuration]);
 
   const start = useCallback(() => {
     setStatus('running');
@@ -75,7 +61,8 @@ export const usePomodoro = () => {
 
   const reset = useCallback(() => {
     setStatus('idle');
-    setTimeLeft(getDuration(mode));
+    const duration = getDuration(mode);
+    setTimeLeft(duration);
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -83,10 +70,11 @@ export const usePomodoro = () => {
     startTimeRef.current = null;
   }, [mode, getDuration]);
 
-  const switchMode = useCallback((newMode: TimerMode) => {
+  const switchMode = useCallback((newMode) => {
     setMode(newMode);
     setStatus('idle');
-    setTimeLeft(getDuration(newMode));
+    const duration = getDuration(newMode);
+    setTimeLeft(duration);
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -95,7 +83,7 @@ export const usePomodoro = () => {
 
   const completeSession = useCallback(() => {
     const duration = getDuration(mode);
-    const session: PomodoroSession = {
+    const session = {
       date: new Date().toISOString(),
       duration: duration / 60,
       type: mode,
@@ -137,10 +125,24 @@ export const usePomodoro = () => {
     };
   }, [status, mode, completeSession, getDuration]);
 
-  const updateSettings = useCallback((newSettings: Partial<PomodoroSettings>) => {
-    setSettings(prev => ({ ...prev, ...newSettings }));
-    reset();
-  }, [reset]);
+  const updateSettings = useCallback((newSettings) => {
+    setSettings(prev => {
+      const updated = { ...prev, ...newSettings };
+      return updated;
+    });
+    setStatus('idle');
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  // Update timeLeft when settings change
+  useEffect(() => {
+    if (status === 'idle') {
+      setTimeLeft(getDuration(mode));
+    }
+  }, [settings, mode, status, getDuration]);
 
   return {
     mode,

@@ -1,12 +1,7 @@
 import { Card } from '@/components/ui/card';
-import { PomodoroSession } from '@/hooks/usePomodoro';
 import { BarChart3, Clock, TrendingUp } from 'lucide-react';
 
-interface SessionStatsProps {
-  sessions: PomodoroSession[];
-}
-
-export default function SessionStats({ sessions = [] }: SessionStatsProps) {
+export default function SessionStats({ sessions = [] }) {
   const getToday = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -21,7 +16,7 @@ export default function SessionStats({ sessions = [] }: SessionStatsProps) {
     return firstDay;
   };
 
-  const filterSessionsByDate = (startDate: Date) => {
+  const filterSessionsByDate = (startDate) => {
     return sessions.filter(session => {
       const sessionDate = new Date(session.date);
       return sessionDate >= startDate;

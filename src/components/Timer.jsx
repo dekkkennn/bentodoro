@@ -1,18 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, RotateCcw } from 'lucide-react';
-import { TimerMode, TimerStatus } from '@/hooks/usePomodoro';
-
-interface TimerProps {
-  mode: TimerMode;
-  status: TimerStatus;
-  timeLeft: number;
-  completedSessions: number;
-  onStart: () => void;
-  onPause: () => void;
-  onReset: () => void;
-  onModeChange: (mode: TimerMode) => void;
-}
 
 export default function Timer({
   mode,
@@ -23,7 +11,7 @@ export default function Timer({
   onPause,
   onReset,
   onModeChange,
-}: TimerProps) {
+}) {
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
 
@@ -35,6 +23,8 @@ export default function Timer({
         return 'from-green-500 to-emerald-500';
       case 'longBreak':
         return 'from-blue-500 to-cyan-500';
+      default:
+        return 'from-red-500 to-orange-500';
     }
   };
 
@@ -46,6 +36,8 @@ export default function Timer({
         return 'Short Break';
       case 'longBreak':
         return 'Long Break';
+      default:
+        return 'Focus Time';
     }
   };
 

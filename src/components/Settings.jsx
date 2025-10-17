@@ -4,7 +4,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Settings as SettingsIcon, Moon, Sun } from 'lucide-react';
-import { PomodoroSettings } from '@/hooks/usePomodoro';
 import { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -15,12 +14,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
-interface SettingsProps {
-  settings: PomodoroSettings;
-  onUpdateSettings: (settings: Partial<PomodoroSettings>) => void;
-}
-
-export default function Settings({ settings, onUpdateSettings }: SettingsProps) {
+export default function Settings({ settings, onUpdateSettings }) {
   const [localSettings, setLocalSettings] = useState(settings);
   const [isDark, setIsDark] = useState(false);
 
@@ -28,6 +22,10 @@ export default function Settings({ settings, onUpdateSettings }: SettingsProps) 
     const isDarkMode = document.documentElement.classList.contains('dark');
     setIsDark(isDarkMode);
   }, []);
+
+  useEffect(() => {
+    setLocalSettings(settings);
+  }, [settings]);
 
   const toggleTheme = () => {
     const newIsDark = !isDark;
